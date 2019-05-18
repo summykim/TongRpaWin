@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.352
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TongRpaAgent", "TongRpaAgent\TongRpaAgent.csproj", "{070A3CDA-9217-4013-AD42-F612E11FE77D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TongRpaAgentMgmt", "TongRpaAgentMgmt\TongRpaAgentMgmt.csproj", "{CA85E5E9-8D61-4E5A-82E1-FED36C3F5B82}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{070A3CDA-9217-4013-AD42-F612E11FE77D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{070A3CDA-9217-4013-AD42-F612E11FE77D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{070A3CDA-9217-4013-AD42-F612E11FE77D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{070A3CDA-9217-4013-AD42-F612E11FE77D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA85E5E9-8D61-4E5A-82E1-FED36C3F5B82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA85E5E9-8D61-4E5A-82E1-FED36C3F5B82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA85E5E9-8D61-4E5A-82E1-FED36C3F5B82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA85E5E9-8D61-4E5A-82E1-FED36C3F5B82}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {74763E3E-F201-490D-B250-266C3F0157D9}
+	EndGlobalSection
+EndGlobal
