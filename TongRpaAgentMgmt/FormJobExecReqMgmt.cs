@@ -8,6 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using TongRpaCommon.ApiService;
+using TongRpaCommon.Config;
+using TongRpaCommon.Model;
+using TongRpaCommon.Utils;
 
 namespace TongRpaAgentMgmt
 {
@@ -26,23 +30,14 @@ namespace TongRpaAgentMgmt
         //검색
         private void searchReqJob()
         {
-            string url = "http://" + ConnectionConstants.HostName + ":18080/jobExecReqList";
-            string param = "agentId=" + agentId.Text;
-            param += "&jobId=" + jobId.Text;
-            param += "&jobStatus=" + jobStatus.Text;
-            param += "&jobExecReqId=" + jobExecReqId.Text;
-            
-                        url = url + "?" + param;
-            String jsonStr = HttpUtil.RequestHttp(url);
-            ParseUserJson(jsonStr);// listview에 출력
+
+           List<JobExecReqVo> infoList = JobReqService.jobExecReqList(getSelectedAgentId(cboAgentId.Text), jobId.Text, jobExecReqId.Text, jobStatus.Text);
+            drawListView(infoList);
+
         }
 
         private void initListView()
         {
-            jobStatus.Items.Clear();
-            jobStatus.Items.Add("REQ");
-            jobStatus.Items.Add("ING");
-            jobStatus.Items.Add("CMP");
 
             JobListView.Clear();
             JobListView.Columns.Clear();
@@ -53,31 +48,61 @@ namespace TongRpaAgentMgmt
             JobListView.Columns.Add("JOB ID", 200, HorizontalAlignment.Left);
             JobListView.Columns.Add("실행상태", 100, HorizontalAlignment.Left);
             JobListView.Columns.Add("Agent상태", 100, HorizontalAlignment.Left);
-            JobListView.Columns.Add("등록일시", 200, HorizontalAlignment.Left);
-            JobListView.Columns.Add("수정일시", 200, HorizontalAlignment.Left);
+            JobListView.Columns.Add("요청일시", 200, HorizontalAlignment.Left);
+            JobListView.Columns.Add("실행일시", 200, HorizontalAlignment.Left);
+            JobListView.Columns.Add("실행결과", 100, HorizontalAlignment.Left);
+            JobListView.Columns.Add("실행결과데이터", 300, HorizontalAlignment.Left);
         }
-        private void ParseUserJson(String json)
+
+
+        private void drawListView(List<JobExecReqVo> infoList)
         {
             initListView();
-            JArray array = JArray.Parse(json);
 
-
-            foreach (JObject itemObj in array)
+            for (int i = 0; i < infoList.Count; i++)
             {
+                JobExecReqVo info = infoList[i];
                 ListViewItem lvt = new ListViewItem();
-                lvt.Text = itemObj["exec_req_id"].ToString();
-                lvt.SubItems.Add(itemObj["agent_id"].ToString());
-                lvt.SubItems.Add(itemObj["job_id"].ToString());
-                lvt.SubItems.Add(itemObj["job_status"].ToString());
-                lvt.SubItems.Add(itemObj["agent_status"].ToString());
-                lvt.SubItems.Add(itemObj["reg_dtm"].ToString());
-                lvt.SubItems.Add(itemObj["upd_dtm"].ToString());
-
+                lvt.Text = info.exec_req_id;
+                lvt.SubItems.Add(info.agent_id);
+                lvt.SubItems.Add(info.job_id);
+                lvt.SubItems.Add(info.job_status);
+                lvt.SubItems.Add(info.agent_status);
+                lvt.SubItems.Add(info.reg_user);
+                lvt.SubItems.Add(info.reg_dtm);
+                lvt.SubItems.Add(info.upd_dtm);
                 JobListView.Items.Add(lvt);
             }
 
 
+
         }
 
+        private void FormJobExecReqMon_Load(object sender, EventArgs e)
+        {
+            jobStatus.Items.Clear();
+            jobStatus.Items.Add("REQ");
+            jobStatus.Items.Add("ING");
+            jobStatus.Items.Add("CMP");
+            jobStatus.SelectedIndex = 0;
+
+
+            // 사용자 목록 넣기 
+            List<Agent> agntList = AgentService.getAgentList("", "");
+            for (int i = 0; i < agntList.Count; i++)
+            {
+                Agent agntInfo = agntList[i];
+                cboAgentId.Items.Add(agntInfo.agent_id + "(" + agntInfo.agent_nm + ")");
+
+            }
+            cboAgentId.SelectedIndex = 0;
+        }
+
+        // Agent 코드 분리
+        private string getSelectedAgentId(string AgentInfo)
+        {
+            string[] info = AgentInfo.Split('(');
+            return info[0];
+        }
     }
 }

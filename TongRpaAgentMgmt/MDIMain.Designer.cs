@@ -38,10 +38,8 @@
             this.MonitoringMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.JobReqMonMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.ApiTestMenu = new System.Windows.Forms.ToolStripMenuItem();
-            this.jOB검색ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.jOBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
-            this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.loginUserInfoSB = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.menuStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
@@ -59,6 +57,7 @@
             this.menuStrip.Size = new System.Drawing.Size(1027, 24);
             this.menuStrip.TabIndex = 0;
             this.menuStrip.Text = "MenuStrip";
+            this.menuStrip.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.MenuStrip_ItemClicked);
             // 
             // InfoMgmtMenu
             // 
@@ -75,12 +74,12 @@
             // toolStripSeparator6
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator6.Size = new System.Drawing.Size(136, 6);
             // 
             // UserMgmtMenu
             // 
             this.UserMgmtMenu.Name = "UserMgmtMenu";
-            this.UserMgmtMenu.Size = new System.Drawing.Size(180, 22);
+            this.UserMgmtMenu.Size = new System.Drawing.Size(139, 22);
             this.UserMgmtMenu.Text = "사용자 관리";
             this.UserMgmtMenu.Click += new System.EventHandler(this.UserMgmtMenu_Click);
             // 
@@ -88,14 +87,14 @@
             // 
             this.JobMgmtMenu.Name = "JobMgmtMenu";
             this.JobMgmtMenu.ShowShortcutKeys = false;
-            this.JobMgmtMenu.Size = new System.Drawing.Size(180, 22);
+            this.JobMgmtMenu.Size = new System.Drawing.Size(139, 22);
             this.JobMgmtMenu.Text = "JOB 관리";
             this.JobMgmtMenu.Click += new System.EventHandler(this.JobMgmtMenu_Click);
             // 
             // AgentMgmtMenu
             // 
             this.AgentMgmtMenu.Name = "AgentMgmtMenu";
-            this.AgentMgmtMenu.Size = new System.Drawing.Size(180, 22);
+            this.AgentMgmtMenu.Size = new System.Drawing.Size(139, 22);
             this.AgentMgmtMenu.Text = "AGENT 관리";
             this.AgentMgmtMenu.Click += new System.EventHandler(this.AgentMgmtMenu_Click);
             // 
@@ -116,30 +115,15 @@
             // 
             // ApiTestMenu
             // 
-            this.ApiTestMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.jOB검색ToolStripMenuItem,
-            this.jOBToolStripMenuItem});
             this.ApiTestMenu.Name = "ApiTestMenu";
             this.ApiTestMenu.Size = new System.Drawing.Size(73, 20);
             this.ApiTestMenu.Text = "API테스트";
-            // 
-            // jOB검색ToolStripMenuItem
-            // 
-            this.jOB검색ToolStripMenuItem.Name = "jOB검색ToolStripMenuItem";
-            this.jOB검색ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.jOB검색ToolStripMenuItem.Text = "JOB검색";
-            // 
-            // jOBToolStripMenuItem
-            // 
-            this.jOBToolStripMenuItem.Name = "jOBToolStripMenuItem";
-            this.jOBToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.jOBToolStripMenuItem.Text = "JOB실행요청";
-            this.jOBToolStripMenuItem.Click += new System.EventHandler(this.JOBToolStripMenuItem_Click);
+            this.ApiTestMenu.Click += new System.EventHandler(this.ApiTestMenu_Click);
             // 
             // statusStrip
             // 
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel});
+            this.loginUserInfoSB});
             this.statusStrip.Location = new System.Drawing.Point(0, 543);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Padding = new System.Windows.Forms.Padding(1, 0, 16, 0);
@@ -147,11 +131,11 @@
             this.statusStrip.TabIndex = 2;
             this.statusStrip.Text = "StatusStrip";
             // 
-            // toolStripStatusLabel
+            // loginUserInfoSB
             // 
-            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
-            this.toolStripStatusLabel.Size = new System.Drawing.Size(31, 17);
-            this.toolStripStatusLabel.Text = "상태";
+            this.loginUserInfoSB.Name = "loginUserInfoSB";
+            this.loginUserInfoSB.Size = new System.Drawing.Size(43, 17);
+            this.loginUserInfoSB.Text = "사용자";
             // 
             // MDIMain
             // 
@@ -163,8 +147,10 @@
             this.IsMdiContainer = true;
             this.Name = "MDIMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Tong RPA Manager";
+            this.Text = "통선임 RPA 괸리자 시스템";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
+            this.Activated += new System.EventHandler(this.MDIMain_Activated);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MDIMain_FormClosing);
             this.Load += new System.EventHandler(this.MDIMain_Load);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
@@ -180,7 +166,6 @@
         private System.Windows.Forms.MenuStrip menuStrip;
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel;
         private System.Windows.Forms.ToolStripMenuItem InfoMgmtMenu;
         private System.Windows.Forms.ToolStripMenuItem JobMgmtMenu;
         private System.Windows.Forms.ToolStripMenuItem MonitoringMenu;
@@ -188,9 +173,8 @@
         private System.Windows.Forms.ToolTip toolTip;
         private System.Windows.Forms.ToolStripMenuItem AgentMgmtMenu;
         private System.Windows.Forms.ToolStripMenuItem JobReqMonMenu;
-        private System.Windows.Forms.ToolStripMenuItem jOB검색ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem jOBToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem UserMgmtMenu;
+        private System.Windows.Forms.ToolStripStatusLabel loginUserInfoSB;
     }
 }
 

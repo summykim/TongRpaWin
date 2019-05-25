@@ -8,6 +8,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using TongRpaAgentMgmt.Login;
+using TongRpaCommon.ApiService;
+using TongRpaCommon.Config;
+using TongRpaCommon.Model;
+using TongRpaCommon.Utils;
 
 namespace TongRpaAgentMgmt
 {
@@ -20,15 +25,15 @@ namespace TongRpaAgentMgmt
 
         private void BtnSearch_Click(object sender, EventArgs e)
         {
+            BtnSearch.Enabled = false;
             searchAgent();
+            BtnSearch.Enabled = true;
         }
         //검색
         private void searchAgent()
         {
-            string url = "http://" + ConnectionConstants.HostName + ":18080/agentList";
-
-            String jsonStr = HttpUtil.RequestHttp(url);
-            ParseUserJson(jsonStr);// listview에 출력
+            List<Agent> agentList = AgentService.getAgentList("", "");
+            drawListView(agentList);
         }
 
         private void initListView()
@@ -47,26 +52,25 @@ namespace TongRpaAgentMgmt
             AgentListView.Columns.Add("등록일시", 200, HorizontalAlignment.Left);
             AgentListView.Columns.Add("수정일시", 200, HorizontalAlignment.Left);
         }
-        private void ParseUserJson(String json)
+        private void drawListView(List<Agent> agentList)
         {
             initListView();
-            JArray array = JArray.Parse(json);
 
-
-            foreach (JObject itemObj in array)
+            for (int i = 0; i < agentList.Count; i++)
             {
+                Agent info = agentList[i];
                 ListViewItem lvt = new ListViewItem();
-                lvt.Text = itemObj["agent_id"].ToString();
-                lvt.SubItems.Add(itemObj["agent_nm"].ToString());
-                lvt.SubItems.Add(itemObj["agent_desc"].ToString());
-                lvt.SubItems.Add(itemObj["agent_uid"].ToString());
-                lvt.SubItems.Add(itemObj["agent_status"].ToString());
-                lvt.SubItems.Add(itemObj["reg_user"].ToString());
-                lvt.SubItems.Add(itemObj["reg_dtm"].ToString());
-                lvt.SubItems.Add(itemObj["upd_dtm"].ToString());
-
+                lvt.Text = info.agent_id;
+                lvt.SubItems.Add(info.agent_nm);
+                lvt.SubItems.Add(info.agent_desc);
+                lvt.SubItems.Add(info.agent_uid);
+                lvt.SubItems.Add(info.agent_status);
+                lvt.SubItems.Add(info.reg_user);
+                lvt.SubItems.Add(info.reg_dtm);
+                lvt.SubItems.Add(info.upd_dtm);
                 AgentListView.Items.Add(lvt);
             }
+
 
 
         }
@@ -85,10 +89,8 @@ namespace TongRpaAgentMgmt
                 edtAgentUid.Text = AgentListView.Items[selectedIndex].SubItems[i++].Text;
                 edtAgentStatus.SelectedItem = AgentListView.Items[selectedIndex].SubItems[i++].Text;
 
-                edtRegUser.Text = AgentListView.Items[selectedIndex].SubItems[i++].Text;
-                edtRegDtm.Text = AgentListView.Items[selectedIndex].SubItems[i++].Text;
-                edtUpdDtm.Text = AgentListView.Items[selectedIndex].SubItems[i++].Text;
 
+                editGroupBox.Text = "정보수정";
                 editGroupBox.Visible = true;
             }
         }
@@ -116,9 +118,6 @@ namespace TongRpaAgentMgmt
             edtAgentStatus.Items.Add("BUSY");
             edtAgentStatus.Items.Add("DOWN");
 
-            edtRegUser.Text = ""; edtRegUser.ReadOnly = false;
-            edtRegDtm.Text = "";
-            edtUpdDtm.Text = "";
 
             editGroupBox.Text = "신규등록";
 
@@ -131,7 +130,6 @@ namespace TongRpaAgentMgmt
         {
             String MsgTitle = "신규등록하시겠습니까?";
 
-            string url = "http://" + ConnectionConstants.HostName + ":18080/";
             string apiname = "insertAgent";
             if (editGroupBox.Text.Equals("정보수정"))
             {
@@ -140,29 +138,37 @@ namespace TongRpaAgentMgmt
             }
             MsgTitle = edtAgentNm.Text + "의 정보를  " + MsgTitle;
             DialogResult dialogResult = MessageBox.Show(MsgTitle, "AgentPC", MessageBoxButtons.YesNo);
+
             if (dialogResult == DialogResult.Yes)
             {
-                string param = "agentId=" + edtAgentId.Text;
-                param += "&agentNm=" + edtAgentNm.Text;
-                param += "&agentDesc=" + edtAgentDesc.Text;
-                param += "&agentUid=" + edtAgentUid.Text;
-                param += "&agentStatus=" + edtAgentStatus.Text;
-                param += "&regUser=" + edtRegUser.Text;
 
-                url = url + apiname + "?" + param;
-                String jsonStr = HttpUtil.RequestHttp(url);
+                Agent agentInfo = new Agent("");
 
-                JObject jboj = JObject.Parse(jsonStr);
-                int i = 0;
-                bool result = int.TryParse(jboj["result_cnt"].ToString(), out i);
-                if (i > 0)
+                agentInfo.agent_id = edtAgentId.Text;
+                agentInfo.agent_nm = edtAgentNm.Text;
+                agentInfo.agent_desc = edtAgentDesc.Text;
+                agentInfo.agent_uid = edtAgentUid.Text;
+                agentInfo.agent_status = edtAgentStatus.Text;
+                agentInfo.reg_user = Session.LoginUserInfo.user_id; ;
+
+                int resultCnt = 0;
+                if (apiname == "insertAgent")
+                {
+                    resultCnt = AgentService.insertAgent(agentInfo);
+                }
+                else
+                {
+                    resultCnt = AgentService.updateAgent(agentInfo);
+                }
+
+                if (resultCnt > 0)
                 {
                     searchAgent();
 
                 }
                 else
                 {
-                    MessageBox.Show("실패했음");
+                    MessageBox.Show("실패했어요.");
                 }
             }
         }
@@ -171,7 +177,7 @@ namespace TongRpaAgentMgmt
         private void initUpdEditGroupBox()
         {
 
-            edtAgentId.Text = ""; edtRegUser.ReadOnly = true;
+            edtAgentId.Text = "";
             edtAgentNm.Text = "";
             edtAgentDesc.Text = "";
             edtAgentUid.Text = "";
@@ -180,9 +186,7 @@ namespace TongRpaAgentMgmt
             edtAgentStatus.Items.Add("IDLE");
             edtAgentStatus.Items.Add("BUSY");
             edtAgentStatus.Items.Add("DOWN");
-            edtRegUser.Text = ""; edtRegUser.ReadOnly = true;
-            edtRegDtm.Text = "";
-            edtUpdDtm.Text = "";
+            edtAgentStatus.SelectedIndex = 0;
 
             editGroupBox.Text = "정보수정";
 
@@ -196,20 +200,11 @@ namespace TongRpaAgentMgmt
             DialogResult dialogResult = MessageBox.Show(MsgTitle, "AgentPC", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {
+                Agent agentInfo = new Agent("");
 
-                string url = "http://" + ConnectionConstants.HostName + ":18080/";
-                string apiname = "deleteAgent";
-                string param = "agentId=" + edtAgentId.Text;
-
-
-
-                url = url + apiname + "?" + param;
-                String jsonStr = HttpUtil.RequestHttp(url);
-
-                JObject jboj = JObject.Parse(jsonStr);
-                int i = 0;
-                bool result = int.TryParse(jboj["result_cnt"].ToString(), out i);
-                if (i > 0)
+                agentInfo.agent_id = edtAgentId.Text;
+                int resultCnt = AgentService.deleteAgent(agentInfo);
+                if (resultCnt > 0)
                 {
                     initUpdEditGroupBox();
                     searchAgent();
@@ -236,5 +231,7 @@ namespace TongRpaAgentMgmt
         {
             deleteAgent();
         }
+
+
     }
 }

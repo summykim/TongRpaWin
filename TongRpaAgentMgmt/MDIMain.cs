@@ -7,64 +7,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using TongRpaCommon.Model;
+using System.Configuration;
+using TongRpaAgentMgmt.Login;
 
 namespace TongRpaAgentMgmt
 {
+
     public partial class MDIMain : Form
     {
-        private int childFormNumber = 0;
 
         public MDIMain()
         {
             InitializeComponent();
+            
         }
 
-        private void ShowNewForm(object sender, EventArgs e)
-        {
-            Form childForm = new Form();
-            childForm.MdiParent = this;
-            childForm.Text = "창 " + childFormNumber++;
-            childForm.Show();
-        }
-
-        private void OpenFile(object sender, EventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            openFileDialog.Filter = "텍스트 파일 (*.txt)|*.txt|모든 파일 (*.*)|*.*";
-            if (openFileDialog.ShowDialog(this) == DialogResult.OK)
-            {
-                string FileName = openFileDialog.FileName;
-            }
-        }
-
-        private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            saveFileDialog.Filter = "텍스트 파일 (*.txt)|*.txt|모든 파일 (*.*)|*.*";
-            if (saveFileDialog.ShowDialog(this) == DialogResult.OK)
-            {
-                string FileName = saveFileDialog.FileName;
-            }
-        }
-
-        private void ExitToolsStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
-        private void CutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void CopyToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void PasteToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-        }
 
 
 
@@ -96,38 +54,54 @@ namespace TongRpaAgentMgmt
             }
         }
 
-        private void JOBToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void MDIMain_Load(object sender, EventArgs e)
         {
+            //로그인 폼 호출
+            FormLogin flForm = new FormLogin();
+            flForm.ShowDialog();
+
+            // 로그인 성공
+            if (Session.LoginUserInfo != null)
+            {
+                FormJobExecReqMon FUM = new FormJobExecReqMon();
+                FUM.MdiParent = this;
+                FUM.Show();
+                FUM.WindowState = 0;
+            }
 
         }
         //JOB 정보관리 폼 호출
         private void JobMgmtMenu_Click(object sender, EventArgs e)
         {
             FormJobMgmt FUM = new FormJobMgmt();
-            FUM.MdiParent = this;
-            FUM.Show();
-            FUM.WindowState = 0;
+            if (!formIsExist(FUM.GetType()))
+            {
+                FUM.MdiParent = this;
+                FUM.Show();
+                FUM.WindowState = 0;
+            }
         }
         //Agent정보관리 폼 호출
         private void AgentMgmtMenu_Click(object sender, EventArgs e)
         {
             FormAgentMgmt FUM = new FormAgentMgmt();
-            FUM.MdiParent = this;
-            FUM.Show();
-            FUM.WindowState = 0;
+            if (!formIsExist(FUM.GetType()))
+            {
+                FUM.MdiParent = this;
+                FUM.Show();
+                FUM.WindowState = 0;
+            }
         }
         //사용자 정보관리 폼 호출
         private void UserMgmtMenu_Click(object sender, EventArgs e)
         {
             FormUserMgmt FUM = new FormUserMgmt();
-            FUM.MdiParent = this;
-            FUM.Show();
-            FUM.WindowState = 0;
+            if (!formIsExist(FUM.GetType()))
+            {
+                FUM.MdiParent = this;
+                FUM.Show();
+                FUM.WindowState = 0;
+            }
 
 
 
@@ -135,10 +109,71 @@ namespace TongRpaAgentMgmt
 
         private void JobReqMonMenu_Click(object sender, EventArgs e)
         {
+           
             FormJobExecReqMon FUM = new FormJobExecReqMon();
-            FUM.MdiParent = this;
-            FUM.Show();
-            FUM.WindowState = 0;
+            if (!formIsExist(FUM.GetType()))
+            {
+                FUM.MdiParent = this;
+                FUM.Show();
+                FUM.WindowState = 0;
+            }
+        }
+
+        private void MenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void MDIMain_Activated(object sender, EventArgs e)
+        {
+           
+            User userInfo=Session.LoginUserInfo;
+            if (userInfo != null)
+                loginUserInfoSB.Text = "사용자 : " +userInfo.user_nm + "(" + userInfo.user_id + ")";
+            else
+                loginUserInfoSB.Text = "";
+        }
+
+        private void ApiTestMenu_Click(object sender, EventArgs e)
+        {
+            FormChatBotAPI FUM = new FormChatBotAPI();
+            if (!formIsExist(FUM.GetType())){
+                FUM.MdiParent = this;
+                FUM.Show();
+                FUM.WindowState = 0;
+            }
+
+
+        }
+
+        private void MDIMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+
+            DialogResult dr = MessageBox.Show("통선임RPA 관리자 프로그램을 종료할까요?", "통선임RPA 관리자", MessageBoxButtons.OKCancel);
+            if (dr == DialogResult.OK)
+            {
+                Application.ExitThread();
+                Application.Exit();
+
+            }
+            else
+            {
+                e.Cancel = true;
+            }
+        }
+
+        // 자식 폼 중복 여부
+        private bool formIsExist(Type tp)
+        {
+            foreach (Form form in this.MdiChildren)
+            {
+                if (form.GetType() == tp)
+                {
+                    form.Activate();
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TongRpaAgent", "TongRpaAgen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TongRpaAgentMgmt", "TongRpaAgentMgmt\TongRpaAgentMgmt.csproj", "{CA85E5E9-8D61-4E5A-82E1-FED36C3F5B82}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TongRpaCommon", "TongRpaCommon\TongRpaCommon.csproj", "{C59FE0E5-6D5E-4E38-B226-7BE9E00F9FCF}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TongRpaAgentSetup", "TongRpaSetup\TongRpaSetup.vdproj", "{7A52DC42-B159-494C-B505-527324E6BEF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,12 @@ Global
 		{CA85E5E9-8D61-4E5A-82E1-FED36C3F5B82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA85E5E9-8D61-4E5A-82E1-FED36C3F5B82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA85E5E9-8D61-4E5A-82E1-FED36C3F5B82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C59FE0E5-6D5E-4E38-B226-7BE9E00F9FCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C59FE0E5-6D5E-4E38-B226-7BE9E00F9FCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C59FE0E5-6D5E-4E38-B226-7BE9E00F9FCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C59FE0E5-6D5E-4E38-B226-7BE9E00F9FCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A52DC42-B159-494C-B505-527324E6BEF8}.Debug|Any CPU.ActiveCfg = Debug
+		{7A52DC42-B159-494C-B505-527324E6BEF8}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

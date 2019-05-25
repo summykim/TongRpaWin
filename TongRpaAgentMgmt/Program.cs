@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net.Config;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace TongRpaAgentMgmt
         [STAThread]
         static void Main()
         {
+            XmlConfigurator.Configure(new System.IO.FileInfo("log4net.xml"));
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MDIMain());

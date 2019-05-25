@@ -9,7 +9,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using TongAgentUtil;
+using TongRpaAgentMgmt.Login;
+using TongRpaCommon.ApiService;
+using TongRpaCommon.Config;
+using TongRpaCommon.Executor;
+using TongRpaCommon.Model;
+using TongRpaCommon.Utils;
 
 namespace TongRpaAgentMgmt
 {
@@ -20,22 +25,69 @@ namespace TongRpaAgentMgmt
             InitializeComponent();
         }
 
-        private void BtnSearch_Click(object sender, EventArgs e)
+        private void FormJobMgmt_Load(object sender, EventArgs e)
         {
-            searchJob();
-        }
-        //검색
-        private void searchJob()
-        {
-            string url = "http://"+ConnectionConstants.HostName+":18080/jobList";
-            string param = "searchText=" + searchText.Text;
-            param += "&authUser=" + authUser.Text;
-            param += "&jobId=" + jobId.Text;
-            url = url + "?" + param;
-            String jsonStr = HttpUtil.RequestHttp(url);
-            ParseUserJson(jsonStr);// listview에 출력
+            initUpdEditGroupBox();
+            editGroupBox.Visible = false;
+
+            // 사용자 목록 넣기 
+            List<User> usrList=UserService.getUserList("", "");
+            for(int i=0;i< usrList.Count; i++)
+            {
+                User userInfo = usrList[i];
+                cboUserList.Items.Add(userInfo.user_id + "(" + userInfo.user_nm+")");
+                
+            }
+            cboUserList.SelectedIndex = 0;
         }
 
+        // 사용자 코드 분리
+        private string getSelectedUserId(string UserInfo)
+        {
+            string [] usrinfo=UserInfo.Split('(');
+            return usrinfo[0];
+        }
+
+        private void BtnSearch_Click(object sender, EventArgs e)
+        {
+            searchJobList();
+        }
+        //검색
+        private void searchJobList()
+        {
+
+            List<Job> jobList =JobService.getJobList(getSelectedUserId((string)cboUserList.SelectedItem),searchText.Text,txtJobId.Text );
+            DrawListView(jobList);
+        }
+
+        //상세정보 초기화
+        private void initUpdEditGroupBox()
+        {
+            edtJobID.Text = "";
+            edtJobNm.Text = "";
+            edtJobDesc.Text = "";
+
+            edtJobTyp.Items.Clear();
+            edtJobTyp.Items.Add("파이썬스크립트");
+            edtJobTyp.Items.Add("REST_API");
+            edtJobTyp.SelectedIndex = 0;
+            edtJobData.Text = "";
+            editGroupBox.Text = "정보수정";
+
+
+        }
+
+        private string getTypeCode(string code)
+        {
+            string resultStr = "";
+            if (code == "RST") resultStr = "REST_API";
+            else if (code == "PY") resultStr = "파이썬스크립트";
+            else if (code == "파이썬스크립트") resultStr = "PY";
+            else if (code == "REST_API") resultStr = "RST";
+
+            return resultStr;
+        }
+        // Listveiw 초기화
         private void initListView()
         {
             editGroupBox.Visible = false;
@@ -47,34 +99,33 @@ namespace TongRpaAgentMgmt
             JobListView.Columns.Add("JOB명", 100, HorizontalAlignment.Left);
             JobListView.Columns.Add("상세설명", 100, HorizontalAlignment.Left);
             JobListView.Columns.Add("구분", 100, HorizontalAlignment.Left);
-            JobListView.Columns.Add("SEQ", 100, HorizontalAlignment.Left);
-            JobListView.Columns.Add("실행데이타", 100, HorizontalAlignment.Left);
-
-            JobListView.Columns.Add("소유자", 100, HorizontalAlignment.Left);
+            JobListView.Columns.Add("실행데이타", 0, HorizontalAlignment.Left);
+            JobListView.Columns.Add("타임아웃", 50, HorizontalAlignment.Left);
+            JobListView.Columns.Add("SEQ", 50, HorizontalAlignment.Left);
             JobListView.Columns.Add("등록자", 100, HorizontalAlignment.Left);
             JobListView.Columns.Add("등록일시", 200, HorizontalAlignment.Left);
             JobListView.Columns.Add("수정일시", 200, HorizontalAlignment.Left);
         }
-        private void ParseUserJson(String json)
+        private void DrawListView(List<Job> jobList)
         {
             initListView();
-            JArray array = JArray.Parse(json);
 
 
-            foreach (JObject itemObj in array)
+
+            for (int i = 0; i < jobList.Count; i++)
             {
+                Job info = jobList[i];
                 ListViewItem lvt = new ListViewItem();
-                lvt.Text = itemObj["job_id"].ToString();
-                lvt.SubItems.Add(itemObj["job_nm"].ToString());
-                lvt.SubItems.Add(itemObj["job_desc"].ToString());
-                lvt.SubItems.Add(itemObj["job_typ"].ToString());
-                lvt.SubItems.Add(itemObj["job_seq"].ToString());
-                lvt.SubItems.Add(itemObj["job_data"].ToString());
-                lvt.SubItems.Add(itemObj["auth_user"].ToString());
-                lvt.SubItems.Add(itemObj["reg_user"].ToString());
-                lvt.SubItems.Add(itemObj["reg_dtm"].ToString());
-                lvt.SubItems.Add(itemObj["upd_dtm"].ToString());
-
+                lvt.Text = info.job_id;
+                lvt.SubItems.Add(info.job_nm);
+                lvt.SubItems.Add(info.job_desc);
+                lvt.SubItems.Add(getTypeCode(info.job_typ));
+                lvt.SubItems.Add(info.job_data);
+                lvt.SubItems.Add(info.job_tmout);
+                lvt.SubItems.Add(info.job_seq);
+                lvt.SubItems.Add(info.reg_user);
+                lvt.SubItems.Add(info.reg_dtm);
+                lvt.SubItems.Add(info.upd_dtm);
                 JobListView.Items.Add(lvt);
             }
 
@@ -93,15 +144,35 @@ namespace TongRpaAgentMgmt
                 edtJobNm.Text = JobListView.Items[selectedIndex].SubItems[i++].Text;
                 edtJobDesc.Text = JobListView.Items[selectedIndex].SubItems[i++].Text;
                 edtJobTyp.SelectedItem = JobListView.Items[selectedIndex].SubItems[i++].Text;
-                edtJobSeq.Text = JobListView.Items[selectedIndex].SubItems[i++].Text;
                 edtJobData.Text = JobListView.Items[selectedIndex].SubItems[i++].Text;
-                edtAuthUser.Text = JobListView.Items[selectedIndex].SubItems[i++].Text;
-
-                edtRegUser.Text = JobListView.Items[selectedIndex].SubItems[i++].Text;
-                edtRegDtm.Text = JobListView.Items[selectedIndex].SubItems[i++].Text;
-                edtUpdDtm.Text = JobListView.Items[selectedIndex].SubItems[i++].Text;
-
+                edtJobTmout.Text = JobListView.Items[selectedIndex].SubItems[i++].Text;
                 editGroupBox.Visible = true;
+                editGroupBox.Text = "정보수정";
+            }
+        }
+
+        // 스크립트 테스트
+        private void BtnTest_Click(object sender, EventArgs e)
+        {
+            if (getTypeCode(edtJobTyp.Text)=="PY")// python 테스트
+            {
+                int timeout = 0;
+                if(int.TryParse(edtJobTmout.Text,out timeout))
+                {
+                    timeout = timeout * 1000;
+                }
+                else
+                {
+                    timeout = 5000;
+                }
+                string result = AgentExecutor.Execute(getTypeCode(edtJobTyp.Text) ,edtJobData.Text, timeout);
+                MessageBox.Show(result);
+
+
+            }
+            else if (getTypeCode(edtJobTyp.Text)=="RST")// http request 테스트
+            {
+
             }
         }
 
@@ -112,15 +183,7 @@ namespace TongRpaAgentMgmt
             edtJobID.Text = "";
             edtJobNm.Text = "";
             edtJobDesc.Text = "";
-            edtJobTyp.Items.Clear();
-            edtJobSeq.Text = "";
             edtJobData.Text = "";
-            edtAuthUser.Text = "";
-
-            edtRegUser.Text = ""; edtRegUser.ReadOnly = false;
-            edtRegDtm.Text = "";
-            edtUpdDtm.Text = "";
-
             editGroupBox.Text = "신규등록";
 
             editGroupBox.Visible = true;
@@ -132,7 +195,7 @@ namespace TongRpaAgentMgmt
         {
             String MsgTitle = "신규등록하시겠습니까?";
 
-            string url = "http://"+ ConnectionConstants.HostName + ":18080/";
+
             string apiname = "insertJob";
             if (editGroupBox.Text.Equals("정보수정"))
             {
@@ -143,24 +206,41 @@ namespace TongRpaAgentMgmt
             DialogResult dialogResult = MessageBox.Show(MsgTitle, "JOB", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {
-                string param = "jobId=" + edtJobID.Text;
-                param += "&jobNm=" + edtJobNm.Text;
-                param += "&jobDesc=" + edtJobDesc.Text;
-                param += "&jobTyp=" + edtJobTyp.Text;
-                param += "&jobData=" + edtJobData.Text;
-                param += "&authUser=" + edtAuthUser.Text;
-                param += "&regUser=" + edtRegUser.Text;
-
-                url = url + apiname + "?" + param;
-                String jsonStr = HttpUtil.RequestHttp(url);
-
-                JObject jboj = JObject.Parse(jsonStr);
-                int i = 0;
-                bool result = int.TryParse(jboj["result_cnt"].ToString(), out i);
-                if (i > 0)
+                int checkI;
+                bool result = int.TryParse(edtJobTmout.Text, out checkI); 
+                if (!result)
                 {
-                    searchJob();
+                    MessageBox.Show("타임아웃은 숫자를 입력해야합니다.");
+                    edtJobTmout.Focus();
+                    return;
+                }
 
+                Job jobInfo = new Job("");
+                jobInfo.job_id = edtJobID.Text;
+                jobInfo.job_nm = edtJobNm.Text;
+                jobInfo.job_desc = edtJobDesc.Text;
+                jobInfo.job_typ = getTypeCode(edtJobTyp.Text);
+                jobInfo.job_data = edtJobData.Text;
+                jobInfo.job_tmout = edtJobTmout.Text;
+                jobInfo.auth_user = getSelectedUserId(cboUserList.Text);
+                jobInfo.reg_user = Session.LoginUserInfo.user_id;
+
+
+                int resultCnt = 0;
+                if(apiname == "insertJob")
+                {
+                    resultCnt = JobService.InsertJob(jobInfo);
+                }
+                else
+                {
+                    resultCnt = JobService.updateJob(jobInfo);
+                }
+               
+
+                if (resultCnt > 0)
+                {
+
+                    searchJobList();
                 }
                 else
                 {
@@ -169,39 +249,11 @@ namespace TongRpaAgentMgmt
             }
         }
 
-
-        private void initUpdEditGroupBox()
-        {
-            edtJobID.Text = ""; edtRegUser.ReadOnly = true;
-            edtJobNm.Text = "";
-            edtJobDesc.Text = "";
-
-            edtJobTyp.Items.Clear();
-            edtJobTyp.Items.Add("RST");
-            edtJobTyp.Items.Add("PY");
-            edtJobSeq.Text = "";
-            edtJobData.Text = "";
-            edtAuthUser.Text = "";
-
-            edtRegUser.Text = ""; edtRegUser.ReadOnly = true;
-            edtRegDtm.Text = "";
-            edtUpdDtm.Text = "";
-
-            editGroupBox.Text = "정보수정";
-
-
-        }
-
         private void NewBtn_Click(object sender, EventArgs e)
         {
             initNewEditGroupBox();
         }
 
-        private void FormJobMgmt_Load(object sender, EventArgs e)
-        {
-            initUpdEditGroupBox();
-            editGroupBox.Visible = false;
-        }
 
         private void CancelBtn_Click_1(object sender, EventArgs e)
         {
@@ -210,23 +262,15 @@ namespace TongRpaAgentMgmt
             DialogResult dialogResult = MessageBox.Show(MsgTitle, "JOB", MessageBoxButtons.YesNo);
             if (dialogResult == DialogResult.Yes)
             {
-
-                string url = "http://" + ConnectionConstants.HostName + ":18080/";
-                string apiname = "deleteJob";
-                string param = "jobId=" + edtJobID.Text;
-
+                Job jobInfo = new Job("");
+                jobInfo.job_id = edtJobID.Text;
+                int resultCnt= JobService.deleteJob(jobInfo);
 
 
-                url = url + apiname + "?" + param;
-                String jsonStr = HttpUtil.RequestHttp(url);
-
-                JObject jboj = JObject.Parse(jsonStr);
-                int i = 0;
-                bool result = int.TryParse(jboj["result_cnt"].ToString(), out i);
-                if (i > 0)
+                if (resultCnt > 0)
                 {
                     initUpdEditGroupBox();
-                    searchJob();
+                    searchJobList();
 
                 }
                 else
@@ -240,38 +284,31 @@ namespace TongRpaAgentMgmt
             }
         }
 
-        private void BtnTest_Click(object sender, EventArgs e)
+        private void Label1_Click(object sender, EventArgs e)
         {
-            if (edtJobTyp.Text.Equals("PY"))// python 테스트
-            {
-                string result = AgentExecutor.DoPython("");
-                MessageBox.Show(result);
-             /*   String filePythonExePath = "C:\\Users\\summy\\AppData\\Local\\Programs\\Python\\Python37 - 32\\Python.exe";
-                IMLSharpPython mlSharpPython = new MLSharpPython(filePythonExePath);
 
-                string standardError;
-                String result= mlSharpPython.ExecutePythonScript(edtJobData.Text ,  out standardError);
-                if (string.IsNullOrEmpty(standardError))
-                {
-
-
-                    Console.WriteLine("result :"+result);
-                     MessageBox.Show(result);
-
-                }
-                else
-                {
-                    Console.WriteLine(standardError);
-                }
-               */
-
-            }
-            else if (edtJobTyp.SelectedText.Equals("RST"))// http request 테스트
-            {
-
-            }
         }
 
+        private void SearchText_TextChanged(object sender, EventArgs e)
+        {
 
+        }
+
+        private void TxtJobId_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Label12_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void CboUserList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+ 
     }
 }
